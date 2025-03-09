@@ -367,27 +367,27 @@ public class LocationReferenceParser {
     private static String getFowDescription(int fow) {
         switch (fow) {
             case 0:
-                return "UNDEFINED";
+                return "undefined";
             case 1:
-                return "MOTORWAY";
+                return "motorway";
             case 2:
-                return "MULTIPLE_CARRIAGEWAY";
+                return "multiple carriageway";
             case 3:
-                return "SINGLE_CARRIAGEWAY";
+                return "single carriageway";
             case 4:
-                return "ROUNDABOUT";
+                return "roundabout";
             case 5:
-                return "TRAFFICSQUARE";
+                return "trafficsquare";
             case 6:
-                return "SLIPROAD";
+                return "sliproad";
             case 7:
-                return "OTHER";
+                return "other";
             case 8:
-                return "BIKE_PATH";
+                return "bike_path";
             case 9:
-                return "FOOTPATH";
+                return "footpath";
             default:
-                return "UNKNOWN";
+                return "unknown";
         }
     }
 

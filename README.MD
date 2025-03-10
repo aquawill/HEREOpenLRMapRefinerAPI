@@ -1,6 +1,6 @@
 ![](https://i.imgur.com/LPh53qQ.png)
 
-# OpenLR API
+# HERE OpenLR Map Refiner API
 
 ## Overview
 This API provides OpenLR decoding capabilities, allowing users to convert binary OpenLR location references into human-readable formats. It supports decoding **LinearLocationReference** and **PointAlongLineLocationReference**, extracting relevant details such as reference points, functional road class, form of way, and calculated geographic coordinates.

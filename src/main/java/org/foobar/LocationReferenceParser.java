@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LocationReferenceParser {
-    public static String parseToJson(String input) {
+    public static String parseToJson(String input) throws JsonProcessingException{
         try {
             ObjectMapper mapper = new ObjectMapper();
             return parseFlatString(input, mapper);

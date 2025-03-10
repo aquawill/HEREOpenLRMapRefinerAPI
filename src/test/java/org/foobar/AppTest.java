@@ -10,11 +10,11 @@ public class AppTest {
 
     @Test
     public void testDecodeOpenLR_ValidData() {
-        OpenLRProcessor server = new OpenLRProcessor();
+        OpenLRMapRefiner server = new OpenLRMapRefiner();
         String base64Data = "CCoBEAAmJQm+WSVVfAAJBQQCAxoACgUEAogZAAHtA2UACQUEAgOEADBigj0=";
 
         Map<String, Object> result = server.decodeOpenLR(base64Data);
-        System.out.println(result);
+//        System.out.println(result);
 
         assertNotNull(result);
         assertFalse(result.toString().contains("error"), "Result should not contain an error");
@@ -23,7 +23,7 @@ public class AppTest {
 
     @Test
     public void testDecodeOpenLR_InvalidData() {
-        OpenLRProcessor server = new OpenLRProcessor();
+        OpenLRMapRefiner server = new OpenLRMapRefiner();
         String invalidBase64Data = "INVALIDBASE64===";
 
         Map<String, Object> result = server.decodeOpenLR(invalidBase64Data);
@@ -35,7 +35,7 @@ public class AppTest {
 
     @Test
     public void testDecodeOpenLR_EmptyData() {
-        OpenLRProcessor server = new OpenLRProcessor();
+        OpenLRMapRefiner server = new OpenLRMapRefiner();
         String emptyBase64Data = "";
 
         Map<String, Object> result = server.decodeOpenLR(emptyBase64Data);

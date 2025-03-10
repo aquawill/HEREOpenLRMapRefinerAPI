@@ -10,10 +10,10 @@
     </parent>
 
     <groupId>org.foobar</groupId>
-    <artifactId>openlr-decoder</artifactId>
-    <version>0.0.4</version>
+    <artifactId>openlr-map-refiner</artifactId>
+    <version>0.0.5</version>
 
-    <name>HERE Platform OpenLR Decoder</name>
+    <name>HERE OpenLR Map Refiner</name>
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -119,7 +119,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.foobar.OpenLRProcessor</mainClass>
+                            <mainClass>org.foobar.OpenLRMapRefiner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -136,7 +136,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.foobar.OpenLRProcessor</mainClass>
+                            <mainClass>org.foobar.OpenLRMapRefiner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

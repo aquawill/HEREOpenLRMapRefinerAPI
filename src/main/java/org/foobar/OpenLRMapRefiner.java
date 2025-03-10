@@ -1,5 +1,6 @@
 package org.foobar;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.javalin.Javalin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 import static org.foobar.LocationReferenceParser.generateCsvFromDecodedResult;
 import static org.foobar.LocationReferenceParser.parsePrettyPrintString;
 
-public class OpenLRProcessor {
+public class OpenLRMapRefiner {
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String ROUTE_MATCHING_URL = "https://routematching.hereapi.com/v8/match/routelinks?apiKey=XOgQg4RkebMiG2vz2L3snJei2hEq6UVzgOwhRZ6dTc8&routeMatch=1&mode=car&mapMatchRadius=20";
 
@@ -178,61 +179,64 @@ public class OpenLRProcessor {
         return R * c;
     }
 
+
     public static Map<String, Object> decodeOpenLR(String base64Data) {
         try {
-            byte[] decode = Base64.getDecoder().decode(base64Data);
-            OpenLRLocationReference reference =
-                    BinaryMarshallers.openLRLocationReference()
-                            .unmarshall(new ByteArrayInputStream(decode));
+            OpenLRLocationReference reference;
+
+            try {
+                byte[] decode = Base64.getDecoder().decode(base64Data);
+                reference = BinaryMarshallers.openLRLocationReference()
+                        .unmarshall(new ByteArrayInputStream(decode));
+
+                if (reference.getLocationReference() == null) {
+                    throw new UnableToDecodeException("Invalid OpenLR data: Decoded reference is null.");
+                }
+            } catch (IllegalArgumentException e) {
+                throw new UnableToDecodeException("Invalid Base64 encoding: " + e.getMessage());
+            } catch (AssertionError e) {
+                throw new UnableToDecodeException("Invalid OpenLR format: " + e.getMessage());
+            } catch (Exception e) {
+                throw new UnableToDecodeException("Unexpected error while decoding OpenLR, please input proper OpenLR Base64 string.");
+            }
+
             System.out.println("getLocationReference: " + reference.getLocationReference().toString());
             ObjectMapper mapper = new ObjectMapper();
             String parsedJson = "";
+
             if (reference.getLocationReference().toString().startsWith("LinearLocationReference")) {
                 LinearLocationReference reference1 = (LinearLocationReference) reference.getLocationReference();
                 parsedJson = parsePrettyPrintString((OlrPrettyPrinter.prettyPrint(reference1).toString()), mapper);
             } else {
                 parsedJson = LocationReferenceParser.parseToJson(reference.getLocationReference().toString());
-
             }
 
             Map<String, Object> jsonMap = objectMapper.readValue(parsedJson, Map.class);
-
             JsonNode decodedResult = objectMapper.readTree(parsedJson);
-            String typeValue = decodedResult.get("type").asText();
 
+            if (!decodedResult.has("type")) {
+                throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
+            }
 
-            // 發送 route matching API，獲取完整 shape
             String csvData = generateCsvFromDecodedResult(decodedResult);
-            System.out.println(csvData);
+//            System.out.println(csvData);
             JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
 
             List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
-
             List<String> linkIdList = fetchLinkIds(matchedRouteResponse);
-
             List<String> segmentRefList = fetchSegmentRefs(matchedRouteResponse);
-
 
             int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
             int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
 
-
             List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
-
             System.out.printf("trimmedShape.size(): %s", trimmedShape.size());
 
-            String shapeStyle = "";
-            if (trimmedShape.size() == 1) {
-                shapeStyle = "point";
-            } else {
-                shapeStyle = "polyline";
-            }
-
-
+            String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
             String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
 
             return Map.of(
-                    "openlr_base64", base64Data,
+                    "input", base64Data,
                     "decoded_result", jsonMap,
                     "map_matched_shape", Map.of(
                             "style", shapeStyle,
@@ -240,16 +244,19 @@ public class OpenLRProcessor {
                             "flexible_polyline", flexiblePolyline)
             );
 
-
+        } catch (UnableToDecodeException e) {
+            return Map.of("error", e.getMessage(), "input", base64Data);
         } catch (Exception e) {
-            return Map.of("input", base64Data, "error", e.getMessage());
+            return Map.of("error", "Unexpected error occurred");
         }
     }
+
 
     public static void main(String[] args) {
         Javalin app = Javalin.create().start(5000);
 
         app.post("/decode", ctx -> {
+
             ctx.contentType("application/json");
 
             Map<String, Object> requestBody = objectMapper.readValue(ctx.body(), Map.class);
@@ -261,16 +268,59 @@ public class OpenLRProcessor {
             }
 
             if (openlrData instanceof List<?>) {
-                List<Map<String, Object>> decodedList = ((List<?>) openlrData).stream()
-                        .map(obj -> decodeOpenLR(obj.toString()))
-                        .collect(Collectors.toList());
-                ctx.json(Map.of("decoded_results", decodedList));
+                List<?> openlrList = (List<?>) openlrData;
+
+                if (openlrList.size() <= 10) {  // 限制最多 10 筆
+                    List<Map<String, Object>> decodedList = openlrList.stream()
+                            .map(obj -> decodeOpenLR(obj.toString()))
+                            .collect(Collectors.toList());
+                    ctx.json(Map.of("decoded_results", decodedList));
+                } else {
+                    ctx.status(400).json(Map.of(
+                            "error", "Too many OpenLR entries. Maximum allowed is 10.",
+                            "max_allowed", 10,
+                            "received", openlrList.size()
+                    ));
+                }
                 return;
             }
+            ctx.status(400).json(Map.of(
+                    "error", "Invalid input format",
+                    "expected", "JSON with key 'openlr_data' containing a string or an array of strings"
+            ));
 
-            ctx.json(Map.of("error", "Invalid input format"));
+        });
+
+//        app.exception(JsonProcessingException.class, (e, ctx) -> {
+//            ctx.status(400).json(Map.of(
+//                    "error", "Invalid input format",
+//                    "expected", "JSON with key 'openlr_data' containing a string or an array of strings"
+//            ));
+//        });
+//
+//        app.exception(IllegalArgumentException.class, (e, ctx) -> {
+//            ctx.status(400).json(Map.of(
+//                    "error", "Invalid input format",
+//                    "expected", "JSON with key 'openlr_data' containing a string or an array of strings"
+//            ));
+//        });
+
+        app.exception(Exception.class, (e, ctx) -> {
+            ctx.status(500).json(Map.of(
+                    "error", "Internal Server Error",
+                    "message", e.getMessage()
+            ));
+        });
+
+        app.exception(UnableToDecodeException.class, (e, ctx) -> {
+            ctx.status(400).json(Map.of(
+                    "error", "Unable to decode OpenLR data",
+                    "message", e.getMessage()
+            ));
         });
 
         System.out.println("OpenLR Decoder API is running on port 5000");
     }
+
+
 }

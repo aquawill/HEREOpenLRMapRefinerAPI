@@ -11,7 +11,7 @@
 
     <groupId>org.foobar</groupId>
     <artifactId>openlr-map-refiner</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>HERE OpenLR Map Refiner</name>
     <licenses>
@@ -119,7 +119,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.foobar.OpenLRMapRefiner</mainClass>
+                            <mainClass>org.foobar.ApiServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -136,7 +136,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>org.foobar.OpenLRMapRefiner</mainClass>
+                            <mainClass>org.foobar.ApiServer</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

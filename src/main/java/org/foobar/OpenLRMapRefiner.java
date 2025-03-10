@@ -1,6 +1,5 @@
 package org.foobar;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.javalin.Javalin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,8 +81,6 @@ public class OpenLRMapRefiner {
             endTrimmedLength += segmentLengths.get(endIndex - 1);
             endIndex--;
         }
-
-        System.out.println(String.format("positiveOffset %s, negativeOffset %s, startIndex %s, endIndex %s", positiveOffset, negativeOffset, startIndex, endIndex));
 
         return shape.subList(startIndex, endIndex);
     }

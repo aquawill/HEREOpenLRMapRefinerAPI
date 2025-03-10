@@ -23,7 +23,12 @@ import static org.foobar.LocationReferenceParser.parsePrettyPrintString;
 
 public class OpenLRMapRefiner {
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String ROUTE_MATCHING_URL = "https://routematching.hereapi.com/v8/match/routelinks?apiKey=XOgQg4RkebMiG2vz2L3snJei2hEq6UVzgOwhRZ6dTc8&routeMatch=1&mode=car&mapMatchRadius=20";
+
+    private static final String HERE_API_KEY = System.getenv("HERE_API_KEY");
+
+    private static final String ROUTE_MATCHING_URL = "https://routematching.hereapi.com/v8/match/routelinks?"
+            + "apiKey=" + HERE_API_KEY
+            + "&routeMatch=1&mode=car&mapMatchRadius=20";
 
 
     public static List<double[]> getTrimmedShape(List<double[]> shape, int positiveOffset, int negativeOffset) {

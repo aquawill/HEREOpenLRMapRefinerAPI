@@ -11,7 +11,7 @@
 
     <groupId>org.foobar</groupId>
     <artifactId>openlr-map-refiner</artifactId>
-    <version>0.0.5</version>
+    <version>1.0.0</version>
 
     <name>HERE OpenLR Map Refiner</name>
     <licenses>

@@ -183,7 +183,7 @@ public class LocationReferenceParser {
 
         String result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
 
-        System.out.println(result);
+//        System.out.println(result);
 
         return result;
     }

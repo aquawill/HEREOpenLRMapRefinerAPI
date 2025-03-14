@@ -19,10 +19,14 @@ public class OpenLRDecoder {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static Map<String, Object> decodeOpenLR(String base64Data) {
-        return decodeOpenLR(base64Data, false);
+        return decodeOpenLR(base64Data, false, true); // 預設為 API 呼叫模式
     }
 
     public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching) {
+        return decodeOpenLR(base64Data, performMapMatching, true);
+    }
+
+    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching, boolean isApiCall) {
         try {
             OpenLRLocationReference reference;
 
@@ -42,7 +46,7 @@ public class OpenLRDecoder {
                 throw new UnableToDecodeException("Unexpected error while decoding OpenLR, please input proper OpenLR Base64 string.");
             }
 
-            System.out.println("getLocationReference: " + reference.getLocationReference().toString());
+//            System.out.println("getLocationReference: " + reference.getLocationReference().toString());
             ObjectMapper mapper = new ObjectMapper();
             String parsedJson = "";
 
@@ -52,47 +56,51 @@ public class OpenLRDecoder {
             } else {
                 parsedJson = LocationReferenceParser.parseToJson(reference.getLocationReference().toString());
             }
-
             Map<String, Object> jsonMap = objectMapper.readValue(parsedJson, Map.class);
-            if (performMapMatching) {
-                JsonNode decodedResult = objectMapper.readTree(parsedJson);
+            if (!isApiCall) {
+                return jsonMap;
+            } else{
+                if (performMapMatching) {
+                    JsonNode decodedResult = objectMapper.readTree(parsedJson);
 
-                if (!decodedResult.has("type")) {
-                    throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
-                }
+                    if (!decodedResult.has("type")) {
+                        throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
+                    }
 
-                String csvData = generateCsvFromDecodedResult(decodedResult);
-                JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
+                    String csvData = generateCsvFromDecodedResult(decodedResult);
+                    JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
 
-                List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
+                    List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
 
 //            List<String> linkIdList = fetchLinkIds(matchedRouteResponse);
 
 //            List<String> segmentRefList = fetchSegmentRefs(matchedRouteResponse);
 
-                int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
-                int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
+                    int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
+                    int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
 
-                List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
-                System.out.printf("trimmedShape.size(): %s", trimmedShape.size());
+                    List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
+//                    System.out.printf("trimmedShape.size(): %s", trimmedShape.size());
 
-                String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
-                String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
+                    String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
+                    String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
 
-                return Map.of(
-                        "input", base64Data,
-                        "decoded_result", jsonMap,
-                        "map_matched_shape", Map.of(
-                                "style", shapeStyle,
-                                "trimmed_shape", trimmedShape,
-                                "flexible_polyline", flexiblePolyline)
-                );
-            } else {
-                return Map.of(
-                        "input", base64Data,
-                        "decoded_result", jsonMap
-                );
+                    return Map.of(
+                            "input", base64Data,
+                            "decoded_result", jsonMap,
+                            "map_matched_shape", Map.of(
+                                    "style", shapeStyle,
+                                    "trimmed_shape", trimmedShape,
+                                    "flexible_polyline", flexiblePolyline)
+                    );
+                } else {
+                    return Map.of(
+                            "input", base64Data,
+                            "decoded_result", jsonMap
+                    );
+                }
             }
+
 
 
         } catch (UnableToDecodeException e) {

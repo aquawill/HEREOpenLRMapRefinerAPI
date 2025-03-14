@@ -22,7 +22,7 @@ public class ApiServer {
             boolean performMapMatching = "true".equalsIgnoreCase(ctx.queryParam("performMapMatching"));
 
             if (openlrData instanceof String) {
-                ctx.json(decodeOpenLR((String) openlrData, performMapMatching));
+                ctx.json(decodeOpenLR((String) openlrData, performMapMatching, true));
                 return;
             }
 
@@ -31,7 +31,7 @@ public class ApiServer {
 
                 if (openlrList.size() <= 10) {  // 限制最多 10 筆
                     List<Map<String, Object>> decodedList = openlrList.stream()
-                            .map(obj -> decodeOpenLR(obj.toString(), performMapMatching))
+                            .map(obj -> decodeOpenLR(obj.toString(), performMapMatching, true))
                             .collect(Collectors.toList());
                     ctx.json(Map.of("decoded_results", decodedList));
                 } else {

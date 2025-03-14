@@ -19,6 +19,10 @@ public class OpenLRDecoder {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static Map<String, Object> decodeOpenLR(String base64Data) {
+        return decodeOpenLR(base64Data, false);
+    }
+
+    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching) {
         try {
             OpenLRLocationReference reference;
 
@@ -50,38 +54,46 @@ public class OpenLRDecoder {
             }
 
             Map<String, Object> jsonMap = objectMapper.readValue(parsedJson, Map.class);
-            JsonNode decodedResult = objectMapper.readTree(parsedJson);
+            if (performMapMatching) {
+                JsonNode decodedResult = objectMapper.readTree(parsedJson);
 
-            if (!decodedResult.has("type")) {
-                throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
-            }
+                if (!decodedResult.has("type")) {
+                    throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
+                }
 
-            String csvData = generateCsvFromDecodedResult(decodedResult);
-            JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
+                String csvData = generateCsvFromDecodedResult(decodedResult);
+                JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
 
-            List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
+                List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
 
 //            List<String> linkIdList = fetchLinkIds(matchedRouteResponse);
 
 //            List<String> segmentRefList = fetchSegmentRefs(matchedRouteResponse);
 
-            int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
-            int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
+                int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
+                int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
 
-            List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
-            System.out.printf("trimmedShape.size(): %s", trimmedShape.size());
+                List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
+                System.out.printf("trimmedShape.size(): %s", trimmedShape.size());
 
-            String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
-            String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
+                String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
+                String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
 
-            return Map.of(
-                    "input", base64Data,
-                    "decoded_result", jsonMap,
-                    "map_matched_shape", Map.of(
-                            "style", shapeStyle,
-                            "trimmed_shape", trimmedShape,
-                            "flexible_polyline", flexiblePolyline)
-            );
+                return Map.of(
+                        "input", base64Data,
+                        "decoded_result", jsonMap,
+                        "map_matched_shape", Map.of(
+                                "style", shapeStyle,
+                                "trimmed_shape", trimmedShape,
+                                "flexible_polyline", flexiblePolyline)
+                );
+            } else {
+                return Map.of(
+                        "input", base64Data,
+                        "decoded_result", jsonMap
+                );
+            }
+
 
         } catch (UnableToDecodeException e) {
             return Map.of("error", e.getMessage(), "input", base64Data);

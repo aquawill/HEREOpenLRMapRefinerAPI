@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class LocationReferenceParser {
     public static String parseToJson(String input) throws JsonProcessingException{
         try {
@@ -21,6 +22,8 @@ public class LocationReferenceParser {
             return null;
         }
     }
+
+
 
 
     public static String parseFlatString(String input, ObjectMapper mapper) throws JsonProcessingException {
@@ -134,7 +137,7 @@ public class LocationReferenceParser {
         int bearing = Integer.parseInt(lastMatcher.group(5));
 
         point.append(label + ":\n");
-        point.append("    coordinate: " + dx + "," + dy + " => " + CoordinateConverter.convertToWGS84Relative(firstMatcher, dx, dy) + "\n");
+        point.append("    coordinate: " + dx + "," + dy + " => " + CoordinateConverter.convertToWGS84RelativeString(firstMatcher, dx, dy) + "\n");
         point.append("    lineProperties:\n");
         point.append("        bearing: " + bearing + " => " + convertBearing(bearing) + "°\n");
         point.append("        frc: " + frc + " [0-7], with 0 most important\n");
@@ -184,7 +187,7 @@ public class LocationReferenceParser {
         String result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
 
 //        System.out.println(result);
-
+    
         return result;
     }
 

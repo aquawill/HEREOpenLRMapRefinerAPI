@@ -117,7 +117,7 @@ public class LocationReferenceParser {
         point.append(label + ":\n");
         point.append("    coordinate: " + x + "," + y + " => " + CoordinateConverter.convertToWGS84(x, y) + "\n");
         point.append("    lineProperties:\n");
-        point.append("        bearing: " + bearing + " => " + convertBearing(bearing) + "°\n");
+        point.append("        bearing: " + bearing + " => " + convertBearingToAzimuth(bearing) + "°\n");
         point.append("        frc: " + frc + " (0-7, with 0 most important)\n");
         point.append("        fow: " + fow + " => " + getFowDescription(fow) + "\n");
         point.append("    pathProperties:\n");
@@ -139,16 +139,21 @@ public class LocationReferenceParser {
         point.append(label + ":\n");
         point.append("    coordinate: " + dx + "," + dy + " => " + CoordinateConverter.convertToWGS84RelativeString(firstMatcher, dx, dy) + "\n");
         point.append("    lineProperties:\n");
-        point.append("        bearing: " + bearing + " => " + convertBearing(bearing) + "°\n");
+        point.append("        bearing: " + bearing + " => " + convertBearingToAzimuth(bearing) + "°\n");
         point.append("        frc: " + frc + " [0-7], with 0 most important\n");
         point.append("        fow: " + fow + " => " + getFowDescription(fow) + "\n");
 
         return point.toString();
     }
 
-    private static double convertBearing(int bearingValue) {
+    public static double convertBearingToAzimuth(int bearingValue) {
         return Math.round(bearingValue * 360.0 / 256 * 10.0) / 10.0;
     }
+
+    public static int convertAzimuthToBearing(double azimuth) {
+    return (int) Math.round(azimuth * 256.0 / 360.0);
+}
+
 
     static String parsePrettyPrintString(String input, ObjectMapper mapper) throws JsonProcessingException {
         ObjectNode rootNode = mapper.createObjectNode();

@@ -75,9 +75,9 @@ public class TileCli {
                     int tc = Integer.parseInt(args[1]);
                     int tr = Integer.parseInt(args[2]);
                     int lvl = Integer.parseInt(args[3]);
-                    HereQuad tile = HereQuadFactory.INSTANCE.getMapQuadByXYLevel(tc, tr, lvl);
+                    long tileQuadkey = HereQuadFactory.INSTANCE.getMapQuadByXYLevel(tc, tr, lvl).getLongKey();
                     System.out.println("{");
-                    System.out.printf("  \"quadkey\": \"%s\"\n", tile);
+                    System.out.printf("  \"quadkey\": \"%s\"\n", tileQuadkey);
                     System.out.println("}");
                     break;
 

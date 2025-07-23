@@ -1,7 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -10,10 +9,19 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>tile-cli</artifactId>
-    <name>Tile CLI</name>
-    <packaging>pom</packaging>
+    <artifactId>map-refiner</artifactId>
+    <packaging>jar</packaging>
+    <name>HERE OpenLR Map Refiner</name>
 
+    <properties>
+        <encoding>UTF-8</encoding>
+        <exec.classpathScope>compile</exec.classpathScope>
+    </properties>
+
+    <dependencies>
+
+
+    </dependencies>
 
     <build>
         <plugins>
@@ -22,14 +30,14 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.4.0</version>
                 <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.foobar.TileCli</mainClass>
-                        </manifest>
-                    </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.foobar.ApiServer</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
                 <executions>
                     <execution>
@@ -40,6 +48,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>9</source>
+                    <target>9</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -8,9 +8,7 @@ import java.util.regex.Matcher;
 public class CoordinateConverter {
     private static final double SCALE_FACTOR = Math.pow(2, 24) / 360.0;
 
-    /**
-     * 绝对坐标转换为 WGS84
-     */
+
     public static String convertToWGS84(int x, int y) {
         return convertIntToDegrees(y) + "," + convertIntToDegrees(x);
     }
@@ -73,16 +71,16 @@ public class CoordinateConverter {
 //    }
 
     public static int convertDegreestoIntAngle(double degrees) {
-        return (int)(0.5 * Math.signum(degrees) + degrees * Math.pow(2, 24) / 360.0);
+        return (int) (0.5 * Math.signum(degrees) + degrees * Math.pow(2, 24) / 360.0);
     }
 
     public static double convertIntToDegrees(int intAngle) {
         double degrees = intAngle * 360.0 / Math.pow(2, 24);
-        System.out.printf("intAngle %s, degrees %s%n", intAngle, degrees);
+//        System.out.printf("intAngle %s, degrees %s%n", intAngle, degrees);
         return degrees;
     }
 
-    private static int convertDegreesToInt(double degrees) {
+    static int convertDegreesToInt(double degrees) {
         return (int) Math.round(degrees * SCALE_FACTOR);
     }
 
@@ -92,10 +90,49 @@ public class CoordinateConverter {
         return new AbsoluteGeoCoordinate(latInt, lonInt, Optional.empty());
     }
 
+
     public static void main(String[] args) {
-        System.out.println(convertIntToDegrees(-174122));
-        System.out.println(convertIntToDegrees(-174122 -54));
-        System.out.println(convertIntToDegrees(-1794889));
-        System.out.println(convertIntToDegrees(-1794889 -19));
+//        int intDegreesLongitude = -4622669;
+//        int intDegreesLatitude = 903352;
+//        int intDegreesLongitudeOffset = 47;
+//        int intDegreesLatitudeOffset = 90;
+//
+//        double wgs84Latitude = 19.39819;
+//        double wgs84Longitude = -99.15080;
+
+//        System.out.println(LocationReferenceParser.convertBearingToAzimuth(230));
+
+//        System.out.println(String.format("1st wgs84 point: %s, %s", convertIntToDegrees(intDegreesLatitude), convertIntToDegrees(intDegreesLongitude)));
+//        System.out.println(String.format("last wgs84 point: %s, %s", convertIntToDegrees(intDegreesLatitude + intDegreesLatitudeOffset), convertIntToDegrees(intDegreesLongitude + intDegreesLongitudeOffset)));
+        double oriLng = 121.541898;
+        double oriLat = 25.036104;
+
+        int oriLngInt = convertDegreesToInt(oriLng);
+        int oriLatInt = convertDegreesToInt(oriLat);
+
+//        System.out.println(String.format(String.format("%s,%s", convertDegreesToInt(oriLng), convertDegreesToInt(oriLat))));
+//        System.out.println(String.format(String.format("%s,%s", convertIntToDegrees(convertDegreesToInt(oriLng)), convertIntToDegrees(convertDegreesToInt(oriLat)))));
+
+        double destLng = 121.548608;
+        double destLat = 25.035984;
+
+        int destLngOffset =  convertDegreesToInt(destLng) - convertDegreesToInt(oriLng);
+        int destLatOffset =  convertDegreesToInt(destLat) - convertDegreesToInt(oriLat);
+
+        double destLngDegree =  convertIntToDegrees(oriLngInt + destLngOffset);
+        double destLatDegree = convertIntToDegrees(oriLatInt + destLatOffset);
+
+//        System.out.println(String.format("offset: %s,%s", destLngOffset, destLatOffset));
+//        System.out.println(String.format(String.format("offsetY: %s", convertDegreesToInt(destLat) - convertDegreesToInt(oriLat))));
+
+        System.out.println(String.format(String.format("%s,%s", destLngDegree, destLatDegree)));
+
+//        System.out.println(String.format("OLR Longitude: %s, Latitude: %s", convertDegreesToInt(wgs84Longitude), convertDegreesToInt(wgs84Latitude)));
+
+//        System.out.println(String.format("%s, %s", convertIntToDegrees(-4620782), convertIntToDegrees(903759)));
+//        System.out.println(String.format("%s, %s", convertIntToDegrees(-4620782 + 226), convertIntToDegrees(903759 + 1860)));
+        System.out.println(String.format("%s", convertIntToDegrees(27702400)));
+        System.out.println(String.format("%s", convertIntToDegrees(583002240)));
+
     }
 }

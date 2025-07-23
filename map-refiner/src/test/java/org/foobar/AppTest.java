@@ -1,5 +1,6 @@
 package org.foobar;
 
+import org.foobar.mapRefiner.OpenLRDecoder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

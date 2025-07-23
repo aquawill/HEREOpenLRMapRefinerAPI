@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.tileCli;
 
 import com.here.olp.util.quad.HereQuad;
 import com.here.olp.util.quad.factory.HereQuadFactory;

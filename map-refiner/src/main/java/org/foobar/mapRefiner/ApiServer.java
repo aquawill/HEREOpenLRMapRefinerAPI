@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 import io.javalin.Javalin;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.foobar.OpenLRDecoder.decodeOpenLR;
+import static org.foobar.mapRefiner.OpenLRDecoder.decodeOpenLR;
 
 public class ApiServer {
     private static final ObjectMapper objectMapper = new ObjectMapper();

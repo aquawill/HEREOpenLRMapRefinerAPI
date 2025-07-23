@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;

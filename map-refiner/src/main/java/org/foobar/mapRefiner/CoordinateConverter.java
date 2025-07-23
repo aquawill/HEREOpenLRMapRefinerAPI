@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 import com.here.platform.location.tpeg2.olr.AbsoluteGeoCoordinate;
 

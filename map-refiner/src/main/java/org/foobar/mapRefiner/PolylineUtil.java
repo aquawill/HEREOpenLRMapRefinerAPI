@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 import com.here.flexpolyline.PolylineEncoderDecoder;
 import com.here.flexpolyline.PolylineEncoderDecoder.ThirdDimension;

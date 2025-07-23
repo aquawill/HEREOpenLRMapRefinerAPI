@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 public class UnableToDecodeException extends RuntimeException {
     public UnableToDecodeException(String message) {

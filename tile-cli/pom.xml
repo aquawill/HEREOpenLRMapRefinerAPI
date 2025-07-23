@@ -12,7 +12,7 @@
 
     <artifactId>tile-cli</artifactId>
     <name>Tile CLI</name>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
 
     <build>
@@ -24,7 +24,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.foobar.TileCli</mainClass>
+                            <mainClass>org.foobar.tileCli.TileCli</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -43,4 +43,10 @@
             </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
 </project>

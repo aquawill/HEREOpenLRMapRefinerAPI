@@ -1,4 +1,4 @@
-package org.foobar;
+package org.foobar.mapRefiner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,9 +11,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static org.foobar.LocationReferenceParser.generateCsvFromDecodedResult;
-import static org.foobar.LocationReferenceParser.parsePrettyPrintString;
-import static org.foobar.RouteMatcher.*;
+import static org.foobar.mapRefiner.LocationReferenceParser.generateCsvFromDecodedResult;
+import static org.foobar.mapRefiner.LocationReferenceParser.parsePrettyPrintString;
+import static org.foobar.mapRefiner.RouteMatcher.*;
 
 public class OpenLRDecoder {
     private static final ObjectMapper objectMapper = new ObjectMapper();

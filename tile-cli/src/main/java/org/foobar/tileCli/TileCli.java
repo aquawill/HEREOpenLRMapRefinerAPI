@@ -19,7 +19,8 @@ public class TileCli {
                     double lat = Double.parseDouble(args[1]);
                     double lng = Double.parseDouble(args[2]);
                     int level = Integer.parseInt(args[3]);
-                    var result1 = TileConverter.wgs84ToTileXY(lat, lng, level);
+                    int world_coordinates_bits = Integer.parseInt(args[4]);
+                    var result1 = TileConverter.wgs84ToTileXY(lat, lng, level, world_coordinates_bits);
                     System.out.println("{");
                     System.out.printf("  \"quadkey\": \"%s\",\n", result1.quadkey.getLongKey());
                     System.out.printf("  \"tile_row\": %d,\n", result1.tileRow);
@@ -35,7 +36,8 @@ public class TileCli {
                     int x = Integer.parseInt(args[3]);
                     int y = Integer.parseInt(args[4]);
                     int level2 = Integer.parseInt(args[5]);
-                    double[] wgs84 = TileConverter.tileXYToWGS84(x, y, tileRow, tileColumn, level2);
+                    int world_coordinates_bits2 = Integer.parseInt(args[6]);
+                    double[] wgs84 = TileConverter.tileXYToWGS84(x, y, tileRow, tileColumn, level2, world_coordinates_bits2);
                     System.out.println("{");
                     System.out.printf("  \"lat\": %.8f,\n", wgs84[0]);
                     System.out.printf("  \"lng\": %.8f\n", wgs84[1]);
@@ -46,12 +48,12 @@ public class TileCli {
                     String quadkey = args[1];
                     int qx = Integer.parseInt(args[2]);
                     int qy = Integer.parseInt(args[3]);
+                    int world_coordinates_bits3 = Integer.parseInt(args[4]);
                     HereQuadFactory factory = HereQuadFactory.INSTANCE;
 
                     var tileInfo = factory.getMapQuadByLongKey(Integer.parseInt(quadkey));
-                    double[] wgs84FromQk = TileConverter.tileXYToWGS84(
-                            qx, qy, tileInfo.getY(), tileInfo.getX(), tileInfo.getZoomLevel()
-                    );
+                    double[] wgs84FromQk = TileConverter.tileXYToWGS84(qx, qy, tileInfo.getY(), tileInfo.getX(),
+                            tileInfo.getZoomLevel(), world_coordinates_bits3);
                     System.out.println("{");
                     System.out.printf("  \"lat\": %.8f,\n", wgs84FromQk[0]);
                     System.out.printf("  \"lng\": %.8f,\n", wgs84FromQk[1]);
@@ -95,9 +97,9 @@ public class TileCli {
     private static void printUsage() {
         System.out.println("Tile Coordinate Converter CLI (Java)");
         System.out.println("Usage:");
-        System.out.println("  from-wgs84-to-tile-coords <lat> <lng> <level>");
-        System.out.println("  from-tile-coords-to-wgs84 <tile_column> <tile_row> <x> <y> <level>");
-        System.out.println("  from-quadkey-coords-to-wgs84 <quadkey> <x> <y>");
+        System.out.println("  from-wgs84-to-tile-coords <lat> <lng> <level> <world_coordinates_bits>");
+        System.out.println("  from-tile-coords-to-wgs84 <tile_column> <tile_row> <x> <y> <level> <world_coordinates_bits>");
+        System.out.println("  from-quadkey-coords-to-wgs84 <quadkey> <x> <y> <world_coordinates_bits>");
         System.out.println("  from-quadkey-to-tile <quadkey>");
         System.out.println("  from-tile-to-quadkey <tile_column> <tile_row> <level>");
     }

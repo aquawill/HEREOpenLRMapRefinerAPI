@@ -5,12 +5,10 @@ import com.here.olp.util.quad.factory.HereQuadFactory;
 
 public class TileConverter {
 
-    private static final int WORLD_COORDINATE_BITS = 25;
-
     public static double[] tileXYToWGS84(
-            int x, int y, int tileRow, int tileColumn, int tileLevel) {
+            int x, int y, int tileRow, int tileColumn, int tileLevel,  int world_coordinates_bits) {
 
-        int shift = WORLD_COORDINATE_BITS - tileLevel;
+        int shift = world_coordinates_bits - tileLevel;
 
         int iLatTile = tileRow << shift;
         int iLngTile = tileColumn << shift;
@@ -18,17 +16,17 @@ public class TileConverter {
         int iLat = iLatTile + y;
         int iLng = iLngTile + x;
 
-        double lat = (iLat * 360.0) / (1 << WORLD_COORDINATE_BITS) - 90.0;
-        double lng = (iLng * 360.0) / (1 << WORLD_COORDINATE_BITS) - 180.0;
+        double lat = (iLat * 180.0) / (1 << (world_coordinates_bits - 1)) - 90.0;
+        double lng = (iLng * 360.0) / (1 << world_coordinates_bits) - 180.0;
 
         return new double[]{lat, lng};
     }
 
-    public static TileResult wgs84ToTileXY(double lat, double lng, int tileLevel) {
-        int iLat = (int) (((lat + 90.0) / 360.0) * (1 << WORLD_COORDINATE_BITS));
-        int iLng = (int) (((lng + 180.0) / 360.0) * (1 << WORLD_COORDINATE_BITS));
+    public static TileResult wgs84ToTileXY(double lat, double lng, int tileLevel, int world_coordinates_bits) {
+        int iLat = (int) (((lat + 90.0) / 180.0) * (1 << world_coordinates_bits - 1));
+        int iLng = (int) Math.floor(((lng + 180.0) / 360.0) * (1 << world_coordinates_bits));
 
-        int shift = WORLD_COORDINATE_BITS - tileLevel;
+        int shift = world_coordinates_bits - tileLevel;
         int tileRow = iLat >> shift;
         int tileColumn = iLng >> shift;
 

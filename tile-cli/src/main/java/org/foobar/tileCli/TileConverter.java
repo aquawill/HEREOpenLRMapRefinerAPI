@@ -23,8 +23,8 @@ public class TileConverter {
     }
 
     public static TileResult wgs84ToTileXY(double lat, double lng, int tileLevel, int world_coordinates_bits) {
-        int iLat = (int) (((lat + 90.0) / 180.0) * (1 << world_coordinates_bits - 1));
-        int iLng = (int) Math.floor(((lng + 180.0) / 360.0) * (1 << world_coordinates_bits));
+        int iLat = (int) Math.round(((lat + 90.0) / 180.0) * (1 << (world_coordinates_bits - 1)));
+        int iLng = (int) Math.round(((lng + 180.0) / 360.0) * (1 << world_coordinates_bits));
 
         int shift = world_coordinates_bits - tileLevel;
         int tileRow = iLat >> shift;

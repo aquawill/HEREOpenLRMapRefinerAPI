@@ -22,19 +22,43 @@ public class ShapeProcessor {
             startIndex++;
         }
 
-        int endIndex = segmentLengths.size();
-        if (negativeOffset > 0) {
-            double endTrimmedLength = 0.0;
-            while (endIndex > 0 && endTrimmedLength + segmentLengths.get(endIndex - 1) < negativeOffset) {
-                endTrimmedLength += segmentLengths.get(endIndex - 1);
-                endIndex--;
+        if (negativeOffset == -1) {
+            if (startIndex == 0) {
+                return List.of(shape.get(0));
             }
+            if (startIndex >= shape.size()) {
+                return List.of(shape.get(shape.size() - 1));
+            }
+
+            double remainingDistance = positiveOffset - startTrimmedLength;
+            double[] startPoint = shape.get(startIndex - 1);
+            double[] endPoint = shape.get(startIndex);
+
+            double segmentDistance = segmentLengths.get(startIndex - 1);
+            if (segmentDistance == 0) {
+                return List.of(startPoint);
+            }
+
+            double fraction = remainingDistance / segmentDistance;
+            double interpolatedLat = startPoint[0] + fraction * (endPoint[0] - startPoint[0]);
+            double interpolatedLon = startPoint[1] + fraction * (endPoint[1] - startPoint[1]);
+
+            return List.of(new double[]{interpolatedLat, interpolatedLon});
+        } else if (negativeOffset == 0) {
+            return shape.subList(startIndex, segmentLengths.size());
+        }
+
+        double endTrimmedLength = 0.0;
+        int endIndex = segmentLengths.size();
+        while (endIndex > 0 && endTrimmedLength + segmentLengths.get(endIndex - 1) < negativeOffset) {
+            endTrimmedLength += segmentLengths.get(endIndex - 1);
+            endIndex--;
         }
 
         return shape.subList(startIndex, endIndex);
     }
 
-    private static double haversineDistance(double[] point1, double[] point2) {
+    public static double haversineDistance(double[] point1, double[] point2) {
         double R = 6371000;
         double lat1 = Math.toRadians(point1[0]);
         double lon1 = Math.toRadians(point1[1]);

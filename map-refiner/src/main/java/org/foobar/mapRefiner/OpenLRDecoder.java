@@ -14,6 +14,7 @@ import java.util.Map;
 import static org.foobar.mapRefiner.LocationReferenceParser.generateCsvFromDecodedResult;
 import static org.foobar.mapRefiner.LocationReferenceParser.parsePrettyPrintString;
 import static org.foobar.mapRefiner.RouteMatcher.*;
+import static org.foobar.mapRefiner.ShapeProcessor.getTrimmedShape;
 
 public class OpenLRDecoder {
     private static final ObjectMapper objectMapper = new ObjectMapper();

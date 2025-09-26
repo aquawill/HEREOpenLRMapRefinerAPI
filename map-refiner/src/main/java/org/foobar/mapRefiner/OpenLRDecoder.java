@@ -2,16 +2,20 @@ package org.foobar.mapRefiner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.here.platform.location.core.geospatial.GeoCoordinate;
+import com.here.platform.location.core.geospatial.javadsl.GeoCoordinateHolder;
 import com.here.platform.location.referencing.olr.OlrPrettyPrinter;
 import com.here.platform.location.tpeg2.BinaryMarshallers;
 import com.here.platform.location.tpeg2.olr.*;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 import static org.foobar.mapRefiner.LocationReferenceParser.generateCsvFromDecodedResult;
+import static org.foobar.mapRefiner.LocationReferenceParser.generateGeoCoordinateListFromDecodedResult;
 import static org.foobar.mapRefiner.LocationReferenceParser.parsePrettyPrintString;
 import static org.foobar.mapRefiner.RouteMatcher.*;
 import static org.foobar.mapRefiner.ShapeProcessor.getTrimmedShape;
@@ -23,26 +27,28 @@ public class OpenLRDecoder {
         return decodeOpenLR(base64Data, false, true); // 預設為 API 呼叫模式
     }
 
-    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching) {
-        return decodeOpenLR(base64Data, performMapMatching, true);
+    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching, boolean usePlatformSdk) {
+        return decodeOpenLR(base64Data, performMapMatching, usePlatformSdk, true);
     }
 
-    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching, boolean isApiCall) {
+    public static Map<String, Object> decodeOpenLR(String base64Data, boolean performMapMatching, boolean usePlatformSdk, boolean isApiCall) {
+        System.out.println(base64Data);
+        Map<String, Object> resultJsonMap;
         try {
             OpenLRLocationReference reference = decodeBase64(base64Data);
             String parsedJson = parseLocationReference(reference);
-            Map<String, Object> jsonMap = objectMapper.readValue(parsedJson, Map.class);
-
+            resultJsonMap = objectMapper.readValue(parsedJson, Map.class);
+            System.out.println(resultJsonMap);
             if (!isApiCall) {
-                return jsonMap;
+                return resultJsonMap;
             }
 
-            Map<String, Object> mapMatchedShape = performMapMatching ? performMapMatching(parsedJson, jsonMap) : null;
-            return buildResponse(base64Data, jsonMap, mapMatchedShape);
-        } catch (UnableToDecodeException e) {
+            Map<String, Object> mapMatchedShape = performMapMatching ? performMapMatching(parsedJson, resultJsonMap, usePlatformSdk) : null;
+            return buildResponse(base64Data, resultJsonMap, mapMatchedShape);
+        } catch (UnableToDecodeException | UnableToMatchRouteException e) {
             return Map.of("error", e.getMessage(), "input", base64Data);
         } catch (Exception e) {
-            return Map.of("error", "Unexpected error occurred");
+            return Map.of("error", e.getMessage(), "input", base64Data);
         }
     }
 
@@ -75,29 +81,56 @@ public class OpenLRDecoder {
         }
     }
 
-    private static Map<String, Object> performMapMatching(String parsedJson, Map<String, Object> jsonMap) throws Exception {
+    private static Map<String, Object> performMapMatching(String parsedJson, Map<String, Object> jsonMap, Boolean dataSdkMapMatcher) throws Exception {
         JsonNode decodedResult = objectMapper.readTree(parsedJson);
 
         if (!decodedResult.has("type")) {
             throw new UnableToDecodeException("Decoded OpenLR data is missing required fields.");
         }
 
-        String csvData = generateCsvFromDecodedResult(decodedResult);
-        JsonNode matchedRouteResponse = fetchMatchedRoute(csvData);
-        List<double[]> fullShape = fetchRouteShape(matchedRouteResponse);
+        List<double[]> fullShape;
 
-        int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
-        int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
+        if (dataSdkMapMatcher) {
+//        Data SDK Java PathMatcher
+            List<com.here.platform.location.core.geospatial.GeoCoordinate> latLngList = generateGeoCoordinateListFromDecodedResult(decodedResult);
+            try {
+                fullShape = SdkPathMatcher.fetchRouteShape(latLngList);
+            } catch (UnableToMatchRouteException e) {
+                return Map.of(
+                    "error", e.getMessage()
+            );
+            }
+        } else {
+//        HERE Route Matching API V8
+            String csvData = generateCsvFromDecodedResult(decodedResult);
+            JsonNode routeMatchingApiResponse = fetchMatchedRoute(csvData);
+            fullShape = fetchRouteShape(routeMatchingApiResponse);
+        }
 
-        List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
-        String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
-        String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
 
-        return Map.of(
-                "style", shapeStyle,
-                "trimmed_shape", trimmedShape,
-                "flexible_polyline", flexiblePolyline
-        );
+//        HERE Route Matching API V8
+//        String csvData = generateCsvFromDecodedResult(decodedResult);
+//        JsonNode routeMatchingApiResponse = fetchMatchedRoute(csvData);
+//        List<double[]> fullShape = fetchRouteShape(routeMatchingApiResponse);
+        if (!fullShape.isEmpty()) {
+            int positiveOffset = (int) jsonMap.getOrDefault("positiveOffset", 0);
+            int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
+
+            List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
+            String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
+            String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
+
+            return Map.of(
+                    "style", shapeStyle,
+                    "trimmed_shape", trimmedShape,
+                    "flexible_polyline", flexiblePolyline
+            );
+        } else {
+            return Map.of(
+                    "error", "Unable to match route."
+            );
+        }
+
     }
 
     private static Map<String, Object> buildResponse(String base64Data, Map<String, Object> jsonMap, Map<String, Object> mapMatchedShape) {

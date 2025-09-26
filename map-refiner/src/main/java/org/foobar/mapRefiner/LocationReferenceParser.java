@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.here.platform.location.core.geospatial.GeoCoordinate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.regex.Pattern;
 
 
 public class LocationReferenceParser {
-    public static String parseToJson(String input) throws JsonProcessingException{
+    public static String parseToJson(String input) throws JsonProcessingException {
         try {
             ObjectMapper mapper = new ObjectMapper();
             return parseFlatString(input, mapper);
@@ -22,8 +23,6 @@ public class LocationReferenceParser {
             return null;
         }
     }
-
-
 
 
     public static String parseFlatString(String input, ObjectMapper mapper) throws JsonProcessingException {
@@ -151,8 +150,8 @@ public class LocationReferenceParser {
     }
 
     public static int convertAzimuthToBearing(double azimuth) {
-    return (int) Math.round(azimuth * 256.0 / 360.0);
-}
+        return (int) Math.round(azimuth * 256.0 / 360.0);
+    }
 
 
     static String parsePrettyPrintString(String input, ObjectMapper mapper) throws JsonProcessingException {
@@ -192,7 +191,7 @@ public class LocationReferenceParser {
         String result = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
 
 //        System.out.println(result);
-    
+
         return result;
     }
 
@@ -342,6 +341,26 @@ public class LocationReferenceParser {
             }
         }
         return intermediates;
+    }
+
+    public static List<com.here.platform.location.core.geospatial.GeoCoordinate> generateGeoCoordinateListFromDecodedResult(JsonNode decodedResult) {
+
+        List<com.here.platform.location.core.geospatial.GeoCoordinate> latLngList = new ArrayList<>();
+
+        JsonNode firstPoint = decodedResult.path("firstReferencePoint").path("coordinate");
+        latLngList.add(new GeoCoordinate(firstPoint.get("lat").asDouble(), firstPoint.get("lon").asDouble()));
+
+
+        JsonNode intermediatePoints = decodedResult.path("intermediateReferencePoints");
+        for (int i = 0; i < intermediatePoints.size(); i++) {
+            JsonNode point = intermediatePoints.get(i).path("coordinate");
+            latLngList.add(new GeoCoordinate(point.get("lat").asDouble(), point.get("lon").asDouble()));
+        }
+
+        JsonNode lastPoint = decodedResult.path("lastReferencePoint").path("coordinate");
+        latLngList.add(new GeoCoordinate(lastPoint.get("lat").asDouble(), lastPoint.get("lon").asDouble()));
+
+        return latLngList;
     }
 
     public static String generateCsvFromDecodedResult(JsonNode decodedResult) {

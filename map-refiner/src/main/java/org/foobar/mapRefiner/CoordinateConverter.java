@@ -131,8 +131,10 @@ public class CoordinateConverter {
 
 //        System.out.println(String.format("%s, %s", convertIntToDegrees(-4620782), convertIntToDegrees(903759)));
 //        System.out.println(String.format("%s, %s", convertIntToDegrees(-4620782 + 226), convertIntToDegrees(903759 + 1860)));
-        System.out.println(String.format("%s", convertIntToDegrees(27702400)));
-        System.out.println(String.format("%s", convertIntToDegrees(583002240)));
+        System.out.println(String.format("%s", convertIntToDegrees(29165184)));
+        System.out.println(String.format("%s", convertIntToDegrees(29703296)));
+        System.out.println(String.format("%s", convertToWGS84(29703296,584299904)));
+
 
     }
 }

@@ -97,14 +97,15 @@ public class OpenLRDecoder {
                 fullShape = SdkPathMatcher.fetchRouteShape(latLngList);
             } catch (UnableToMatchRouteException e) {
                 return Map.of(
-                    "error", e.getMessage()
-            );
+                        "error", e.getMessage()
+                );
             }
         } else {
 //        HERE Route Matching API V8
             String csvData = generateCsvFromDecodedResult(decodedResult);
             JsonNode routeMatchingApiResponse = fetchMatchedRoute(csvData);
             fullShape = fetchRouteShape(routeMatchingApiResponse);
+            System.out.println("route matching api fullShape.size(): " + fullShape.size());
         }
 
 
@@ -117,6 +118,9 @@ public class OpenLRDecoder {
             int negativeOffset = decodedResult.has("negativeOffset") ? decodedResult.get("negativeOffset").asInt() : -1;
 
             List<double[]> trimmedShape = getTrimmedShape(fullShape, positiveOffset, negativeOffset);
+            for (double[] shapepoint : trimmedShape) {
+                System.out.printf("shape point: %s,%s\n", shapepoint[0], shapepoint[1]);
+            }
             String shapeStyle = trimmedShape.size() == 1 ? "point" : "polyline";
             String flexiblePolyline = PolylineUtil.encodeToFlexiblePolyline(trimmedShape);
 
